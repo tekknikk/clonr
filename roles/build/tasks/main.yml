@@ -77,10 +77,10 @@
   register: mktemp_clones
 
 - name: Store list of instances using JSON transformation
-  local_action: >
-    template
-      src=clones.json.j2
-      dest={{mktemp_clones.stdout}}
+  local_action:
+    module: template
+    src: clones.json.j2
+    dest: "{{mktemp_clones.stdout}}"
 
 - name: Register list of instances as a variable
   set_fact:
@@ -129,10 +129,10 @@
   register: mktemp_data
 
 - name: Store list of instances using JSON transformation
-  local_action: >
-    template
-      src=data.json.j2
-      dest={{mktemp_data.stdout}}
+  local_action:
+    module: template
+    src: data.json.j2
+    dest: "{{mktemp_data.stdout}}"
 
 - name: Register list of instances as a variable
   set_fact:
@@ -164,10 +164,10 @@
   register: mktemp_log
 
 - name: Store list of instances using JSON transformation
-  local_action: >
-    template
-      src=log.json.j2
-      dest={{mktemp_log.stdout}}
+  local_action:
+    module: template
+    src: log.json.j2
+    dest: "{{mktemp_log.stdout}}"
 
 - name: Register list of instances as a variable
   set_fact:
