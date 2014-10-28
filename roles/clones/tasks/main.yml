@@ -1,0 +1,22 @@
+---
+- name: Set machine time to Sydney
+  shell: "mv /etc/localtime /etc/localtime.old && ln -s /usr/share/zoneinfo/Australia/Sydney /etc/localtime"
+  sudo: yes
+
+- name: Mount Data Volume
+  mount:
+    name: /var/lib/pgsql/9.1/data
+    src: /dev/xvdd
+    fstype: ext4
+    state: mounted
+    opts: nobarrier
+  sudo: yes
+
+- name: Mount Log Volume
+  mount:
+    name: /var/lib/pgsql/9.1/log
+    src: /dev/xvdl
+    fstype: ext4
+    state: mounted
+    opts: nobarrier
+  sudo: yes

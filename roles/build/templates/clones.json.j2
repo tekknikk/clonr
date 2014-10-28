@@ -1,0 +1,24 @@
+[
+{% for result in run_instances.results %}
+{% for item in result.Instances %}
+  {
+    "id": "{{ item.InstanceId }}",
+    "private_dns": "{{ item.PrivateDnsName }}",
+    "private_ip": "{{ item.PrivateIpAddress }}",
+    "subnet_id": "{{ item.SubnetId }}",
+    "status": "{{item.State.Name}}"
+{% if item.PublicIpAddress is defined -%}
+,
+    "public_dns": "{{ item.PublicDnsName }}",
+    "public_ip": "{{ item.PublicIpAddress }}"
+{% endif %}
+  }
+{% if not loop.last -%}
+,
+{%- endif %}
+{% endfor %}
+{% if not loop.last -%}
+,
+{%- endif %}
+{% endfor %}
+]

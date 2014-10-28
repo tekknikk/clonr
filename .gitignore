@@ -1,0 +1,4 @@
+.DS_Store
+roles/ssh/files/*
+builds/*
+id

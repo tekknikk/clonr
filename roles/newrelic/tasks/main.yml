@@ -1,0 +1,16 @@
+---
+- name: Configure the New Relic rpm repository
+  shell: rpm -Uvh https://yum.newrelic.com/pub/newrelic/el5/x86_64/newrelic-repo-5-3.noarch.rpm
+  sudo: yes
+
+- name: Install the server Monitor
+  shell: yum install yum -y install newrelic-sysmond
+  sudo: yes
+
+- name: Configure Server Monitor daemon with license
+  shell: "nrsysmond-config --set license_key={{newrelic_key}}"
+  sudo: yes
+
+- name: Start the daemon
+  shell: /etc/init.d/newrelic-sysmond start
+  sudo: yes

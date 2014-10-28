@@ -1,0 +1,19 @@
+---
+- debug: var=id
+  tags:
+    - debug
+
+- name: Get the stored etc_hosts file
+  local_action: "shell cat ./builds/{{id}}/{{name}}_etc_hosts"
+  register: etc_hosts
+
+- debug: var=etc_hosts
+  tags:
+    - debug
+
+- name: Add cluster private IP's to nodes host file
+  sudo: yes
+  lineinfile:
+    dest: /etc/hosts
+    insertafter: EOF
+    line: "{{etc_hosts.stdout}}"

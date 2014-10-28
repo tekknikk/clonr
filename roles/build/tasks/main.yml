@@ -1,0 +1,218 @@
+# TODO: need following tasks:  check cluster build status until "waiting" then get roles and ip address's.  need to parse json from aws cli.
+---
+- name: Get the ISO date to use as Build ID
+  local_action: shell date +%Y%m%dT%H%M
+  register: id
+- debug: var=id
+  tags:
+    - debug
+
+- name: Save Build ID
+  local_action:
+    module: template
+    src: id.json.j2
+    dest: "./id"
+
+- name: Create folder for ouput of build files
+  local_action:
+    module: file
+    path: "./builds/{{id.stdout}}"
+    state: directory
+    recurse: yes
+
+- name: Turn off ansible host checking on local
+  sudo: no
+  local_action: >
+    shell export ANSIBLE_HOST_KEY_CHECKING=False
+
+- name: Create key pair
+  local_action:
+    module: aws_cli
+    commandline: >
+      ec2 create-key-pair
+          --key-name {{name}}_{{id.stdout}}
+          --profile {{profile}}
+  register: create_key_pair
+- debug: var=create_key_pair
+  tags:
+    - debug
+
+- name: Save Key to roles/ssh/files
+  local_action:
+    module: template
+    src: key.json.j2
+    dest: "./roles/ssh/files/{{create_key_pair.KeyName}}"
+    mode: 0600
+
+- name: Create EC2 Instances
+  local_action:
+    module: aws_cli
+    commandline: >
+      ec2 run-instances
+        --key-name {{create_key_pair.KeyName}}
+        --subnet-id {{subnet_id}}
+        --image-id {{image_id}}
+        --instance-type {{item.type}}
+        --count {{item.count}}
+        --security-group-ids {{security_group_ids}}
+        --monitoring Enabled=true
+        --no-associate-public-ip-address
+        --profile {{profile}}
+  with_items: instances
+  register: run_instances
+- debug: var=run_instances
+  tags:
+    - debug
+
+- name: Create a file for storing Clones detail
+  local_action: >
+    shell mktemp ./builds/{{id.stdout}}/{{name}}_clones
+  register: mktemp_clones
+
+- name: Store list of instances using JSON transformation
+  local_action: >
+    template
+      src=clones.json.j2
+      dest={{mktemp_clones.stdout}}
+
+- name: Register list of instances as a variable
+  set_fact:
+    clones: "{{ lookup('file', mktemp_clones.stdout  ) }}"
+
+- debug: var=clones
+  tags:
+    - debug
+
+- name: Store a hosts file using instances private IP's
+  local_action:
+    module: template
+    src: etc_hosts.json.j2
+    dest: "./builds/{{id.stdout}}/{{name}}_etc_hosts"
+
+- name: Create host group @clones using private IPs
+  local_action:
+    module: add_host
+    groups: clones
+    hostname: "{{item.private_ip}}"
+    ansible_connection: ssh
+    ansible_ssh_user: "ec2-user"
+    ansible_ssh_private_key_file: "./roles/ssh/files/{{create_key_pair.KeyName}}"
+  with_items: clones
+
+- name: Create Data Volumes
+  local_action:
+    module: aws_cli
+    commandline: >
+      ec2 create-volume
+        --size {{data_volume.size}}
+        --snapshot-id {{data_volume.snapshot_id}}
+        --volume-type {{data_volume.type}}
+        --iops {{data_volume.iops}}
+        --availability-zone {{availability_zone}}
+        --profile {{profile}}
+  with_items: clones
+  register: create_volume_data
+- debug: var=create_volume_data
+  tags:
+    - debug
+
+- name: Create a file for storing Data Volumes detail
+  local_action: >
+    shell mktemp ./builds/{{id.stdout}}/{{name}}_volumes_data
+  register: mktemp_data
+
+- name: Store list of instances using JSON transformation
+  local_action: >
+    template
+      src=data.json.j2
+      dest={{mktemp_data.stdout}}
+
+- name: Register list of instances as a variable
+  set_fact:
+    volumes_data: "{{ lookup('file', mktemp_data.stdout  ) }}"
+
+- debug: var=volumes_data
+  tags:
+    - debug
+
+- name: Create Log Volumes
+  local_action:
+    module: aws_cli
+    commandline: >
+      ec2 create-volume
+        --size {{log_volume.size}}
+        --snapshot-id {{log_volume.snapshot_id}}
+        --volume-type {{log_volume.type}}
+        --availability-zone {{availability_zone}}
+        --profile {{profile}}
+  with_items: clones
+  register: create_volume_log
+- debug: var=create_volume_log
+  tags:
+    - debug
+
+- name: Create a file for storing Log Volumes detail
+  local_action: >
+    shell mktemp ./builds/{{id.stdout}}/{{name}}_volumes_log
+  register: mktemp_log
+
+- name: Store list of instances using JSON transformation
+  local_action: >
+    template
+      src=log.json.j2
+      dest={{mktemp_log.stdout}}
+
+- name: Register list of instances as a variable
+  set_fact:
+    volumes_log: "{{ lookup('file', mktemp_log.stdout  ) }}"
+
+- debug: var=volumes_log
+  tags:
+    - debug
+
+- name: Wait for volumes to start
+  pause: seconds=30
+
+- name: Wait for Clones start
+  local_action:
+    module: aws_cli
+    commandline: >
+      ec2 describe-instance-status
+           --instance-ids {{clones[0].id}}
+           --profile {{profile}}
+  register: describe_instance_status
+  ignore_errors: true
+  until: >
+    describe_instance_status.InstanceStatuses[0].SystemStatus.Status == "ok"
+  retries: 30
+  delay: 10
+
+- name: Attach Data Volumes to clones
+  local_action:
+    module: aws_cli
+    commandline: >
+      ec2 attach-volume
+        --volume-id {{item.VolumeId}}
+        --instance-id {{item.InstanceId}}
+        --device {{data_volume.device}}
+        --profile {{profile}}
+  with_items: volumes_data
+  register: attach_volume_data
+- debug: var=attach_volume_data
+  tags:
+    - debug
+
+- name: Attach Log Volumes
+  local_action:
+    module: aws_cli
+    commandline: >
+      ec2 attach-volume
+        --volume-id {{item.VolumeId}}
+        --instance-id {{item.InstanceId}}
+        --device {{log_volume.device}}
+        --profile {{profile}}
+  with_items: volumes_log
+  register: attach_volume_log
+- debug: var=attach_volume_log
+  tags:
+    - debug

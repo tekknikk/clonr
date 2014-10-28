@@ -1,0 +1,22 @@
+---
+- name: Build AWS EMR Cluster
+  hosts: build
+  user: teknik
+  sudo: false
+  gather_facts: false
+  roles:
+    - build
+
+- name: Configure the clones
+  hosts: clones
+  user: ec2-user
+  sudo: false
+  gather_facts: false
+  vars:
+    id: "{{ lookup('file', './id') }}"
+  vars_files:
+    - ./group_vars/build
+  roles:
+    - {role: newrelic, when: newrelic_key is defined}
+    - dns
+    - clones
