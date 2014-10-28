@@ -6,19 +6,19 @@ subnet_id: subnet-1ad3c578
 availability_zone: ap-southeast-2a
 security_group_ids: sg-03a86966 sg-06584a64 sg-fd4aa098 sg-03584a61 sg-791c0e1b
 instances:
-  - type: t2.small
+  - type: m3.xlarge
     count: 1
   - type: m3.medium
-    count: 2
+    count: 1
 newrelic_key: 9910108157933df624056a0f5c26f19df6090a28
 data_volume:
   size: 1024
-  snapshot_id: snap-8551c6b3
+  snapshot_id: snap-6e9ef958
   type: io1
   iops: 4000
   device: /dev/xvdd
 log_volume:
   size: 500
-  snapshot_id: snap-0524ba33
+  snapshot_id: snap-5a9dfa6c
   type: gp2
   device: /dev/xvdl
