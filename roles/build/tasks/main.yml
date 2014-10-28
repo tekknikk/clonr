@@ -20,6 +20,13 @@
     state: directory
     recurse: yes
 
+- name: Create folder for ouput of ssh keys
+  local_action:
+    module: file
+    path: "./roles/ssh/files"
+    state: directory
+    recurse: yes
+
 - name: Turn off ansible host checking on local
   sudo: no
   local_action: >

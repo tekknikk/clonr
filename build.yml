@@ -1,7 +1,7 @@
 ---
 - name: Build AWS EMR Cluster
   hosts: build
-  user: teknik
+  user: ec2-user
   sudo: false
   gather_facts: false
   roles:
