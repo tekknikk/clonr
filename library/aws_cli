@@ -1,0 +1,63 @@
+#!/bin/bash
+#
+# Absoluterly simple wrapper around `awscli` Python module
+# to avoid unnecessary JSON template manipulations
+#
+# Exit upon any error
+set -e
+
+#
+# Ansible transports arguments to modules in a file. The
+# path to the arguments file is in $1, and the file
+# contains the module's arguments like this:
+#
+#       key1="value 1" key2=value2 ...
+#
+# Hence we simply source that file here
+
+. "$1"
+
+# There is just one required argument, which is called args
+
+if [ -z "$commandline" ]; then
+    msg="'args' is a required argument"
+    exit 1
+fi
+
+PROG=${0##*/}
+
+# Directory to store all temporary files in 
+TMPDIR="/tmp/$PROG.$$"
+mkdir -p "$TMPDIR"
+
+# Clean up after yourself on exit
+trap '_exit_trap' 0 HUP INT QUIT ABRT TERM
+
+# Function to execute upon termination   
+_exit_trap()
+{
+    exit_status=$?
+    # Clear the traps
+    trap 0 HUP INT QUIT ABRT TERM
+    local tempfile;
+
+    if [ -d "$TMPDIR" ]; then
+        rm -rf "$TMPDIR"
+    fi
+    exit $exit_status
+}
+
+echo aws $commandline > "$TMPDIR/commandline.$$"
+
+{
+    [ $? -eq 0 ] || exit 1
+    perl -pne '{ s/:[ \t](false|true)/: "\1"/g;
+                 $cnt++ if  !/^\s+?$/; }
+              END{ if ($cnt == 0) {
+                       printf "{}\n";
+                   }
+              }'
+}<<EOF
+$(/bin/bash "$TMPDIR/commandline.$$")
+EOF
+
