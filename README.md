@@ -12,11 +12,11 @@ Clones of the production postgres database for testing
 
 #INSTRUCTIONS:
 ### 1. Set up your build environment:
+- Check that you can SSH to 127.0.0.1
 - Install AWS CLI
 - Configure AWS CLI with a profile
 - Install Ansible: http://docs.ansible.com/intro_installation.html
 - Set ansible env: shell source ansible env
-- Turn host key checking off: shell export ANSIBLE_HOST_KEY_CHECKING=False
 - Ansible needs Jinja2: apt-get install python-jinja2
 - If old ssh like 5.5: shell export ANSIBLE_SSH_ARGS=""
 

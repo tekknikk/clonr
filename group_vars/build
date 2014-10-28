@@ -6,8 +6,8 @@ subnet_id: subnet-1ad3c578
 availability_zone: ap-southeast-2a
 security_group_ids: sg-03a86966 sg-06584a64 sg-fd4aa098 sg-03584a61 sg-791c0e1b
 instances:
-  - type: m3.xlarge
-    count: 2
+  - type: t2.small
+    count: 1
   - type: m3.medium
     count: 2
 newrelic_key: 9910108157933df624056a0f5c26f19df6090a28

@@ -73,7 +73,7 @@
 
 - name: Create a file for storing Clones detail
   local_action: >
-    shell mktemp ./builds/{{id.stdout}}/{{name}}_clones
+    shell mktemp ./builds/{{id.stdout}}/{{name}}_clones.XXXX
   register: mktemp_clones
 
 - name: Store list of instances using JSON transformation
@@ -125,7 +125,7 @@
 
 - name: Create a file for storing Data Volumes detail
   local_action: >
-    shell mktemp ./builds/{{id.stdout}}/{{name}}_volumes_data
+    shell mktemp ./builds/{{id.stdout}}/{{name}}_volumes_data.XXXX
   register: mktemp_data
 
 - name: Store list of instances using JSON transformation
@@ -160,7 +160,7 @@
 
 - name: Create a file for storing Log Volumes detail
   local_action: >
-    shell mktemp ./builds/{{id.stdout}}/{{name}}_volumes_log
+    shell mktemp ./builds/{{id.stdout}}/{{name}}_volumes_log.XXXX
   register: mktemp_log
 
 - name: Store list of instances using JSON transformation
