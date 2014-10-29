@@ -1,9 +1,10 @@
-max_connections = 288
-shared_buffers = {{ (ansible_memtotal_mb / 3 / 1024)|int }}GB
+shared_buffers = {{ (ansible_memtotal_mb / 2.5 / 1024)|int }}GB
+effective_cache_size = {{ (ansible_memtotal_mb / 9 / 1024)|int }}GB
 work_mem = {{ (ansible_memtotal_mb / 465)|int }}MB
 maintenance_work_mem = 1GB
 wal_keep_segments = 1024
 random_page_cost = 0.2
+max_connections = 288
 
 
 {% raw %}
@@ -255,7 +256,6 @@ seq_page_cost = 0.1			# measured on an arbitrary scale
 #cpu_tuple_cost = 0.01			# same scale as above
 #cpu_index_tuple_cost = 0.005		# same scale as above
 #cpu_operator_cost = 0.0025		# same scale as above
-effective_cache_size = 228GB
 
 # - Genetic Query Optimizer -
 
