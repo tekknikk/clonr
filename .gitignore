@@ -2,3 +2,5 @@
 roles/ssh/files/*
 builds/*
 id
+roles/test/*
+test.yml

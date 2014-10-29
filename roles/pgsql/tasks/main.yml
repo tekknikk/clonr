@@ -1,0 +1,14 @@
+- name: Copy Postgres Conf with Memory Template
+  template:
+    src: postgresql.conf.json.j2
+    dest: /var/lib/pgsql/9.1/data/postgresql.conf
+    owner: postgres
+    group: postgres
+  sudo: yes
+
+
+- name: Start Postgres
+  service:
+    name: postgresql-9.1
+    state: started
+  sudo: yes

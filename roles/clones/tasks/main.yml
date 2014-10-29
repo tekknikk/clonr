@@ -20,9 +20,3 @@
     state: mounted
     opts: nobarrier
   sudo: yes
-
-- name: Start Postgres
-  service:
-    name: postgresql-9.1
-    state: started
-  sudo: yes
