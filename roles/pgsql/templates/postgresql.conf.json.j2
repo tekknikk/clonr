@@ -1,5 +1,5 @@
-shared_buffers = {{ (ansible_memtotal_mb / 2.5 / 1024)|int }}GB
-effective_cache_size = {{ (ansible_memtotal_mb / 9 / 1024)|int }}GB
+shared_buffers = {{ (ansible_memtotal_mb * 0.25 / 1024)|int }}GB
+effective_cache_size = {{ (ansible_memtotal_mb * 0.9 / 1024)|int }}GB
 work_mem = {{ (ansible_memtotal_mb / 465)|int }}MB
 maintenance_work_mem = 1GB
 wal_keep_segments = 1024
