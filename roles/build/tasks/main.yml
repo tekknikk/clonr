@@ -64,6 +64,7 @@
         --security-group-ids {{security_group_ids}}
         --monitoring Enabled=true
         --no-associate-public-ip-address
+        --ebs-optimized
         --profile {{profile}}
   with_items: instances
   register: run_instances
