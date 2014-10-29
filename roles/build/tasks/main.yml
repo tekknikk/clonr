@@ -64,7 +64,7 @@
         --security-group-ids {{security_group_ids}}
         --monitoring Enabled=true
         --no-associate-public-ip-address
-        --ebs-optimized
+        --block-device-mappings '[{ "DeviceName":"/dev/sdb", "VirtualName":"ephemeral0" },{ "DeviceName":"/dev/sdc", "VirtualName":"ephemeral1" }]'
         --profile {{profile}}
   with_items: instances
   register: run_instances
