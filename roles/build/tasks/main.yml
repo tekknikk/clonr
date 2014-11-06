@@ -64,6 +64,7 @@
         --security-group-ids {{security_group_ids}}
         --monitoring Enabled=true
         --no-associate-public-ip-address
+        --ebs-optimized
         --block-device-mappings '[{ "DeviceName":"/dev/sdb", "VirtualName":"ephemeral0" },{ "DeviceName":"/dev/sdc", "VirtualName":"ephemeral1" }]'
         --profile {{profile}}
   with_items: instances
@@ -107,39 +108,39 @@
     ansible_ssh_private_key_file: "./roles/ssh/files/{{create_key_pair.KeyName}}"
   with_items: clones
 
-- name: Create Data Volumes
+- name: Create Split Volumes
   local_action:
     module: aws_cli
     commandline: >
       ec2 create-volume
-        --size {{data_volume.size}}
-        --snapshot-id {{data_volume.snapshot_id}}
-        --volume-type {{data_volume.type}}
-        --iops {{data_volume.iops}}
+        --size {{split_volume.size}}
+        --snapshot-id {{split_volume.snapshot_id}}
+        --volume-type {{split_volume.type}}
+        --iops {{split_volume.iops}}
         --availability-zone {{availability_zone}}
         --profile {{profile}}
   with_items: clones
-  register: create_volume_data
-- debug: var=create_volume_data
+  register: create_volume_split
+- debug: var=create_volume_split
   tags:
     - debug
 
-- name: Create a file for storing Data Volumes detail
+- name: Create a file for storing Split Volumes detail
   local_action: >
-    shell mktemp ./builds/{{id.stdout}}/{{name}}_volumes_data.XXXX
-  register: mktemp_data
+    shell mktemp ./builds/{{id.stdout}}/{{name}}_volumes_split.XXXX
+  register: mktemp_split
 
 - name: Store list of instances using JSON transformation
   local_action:
     module: template
-    src: data.json.j2
-    dest: "{{mktemp_data.stdout}}"
+    src: split.json.j2
+    dest: "{{mktemp_split.stdout}}"
 
 - name: Register list of instances as a variable
   set_fact:
-    volumes_data: "{{ lookup('file', mktemp_data.stdout  ) }}"
+    volumes_split: "{{ lookup('file', mktemp_split.stdout  ) }}"
 
-- debug: var=volumes_data
+- debug: var=volumes_split
   tags:
     - debug
 
@@ -195,22 +196,22 @@
   retries: 30
   delay: 10
 
-- name: Attach Data Volumes to clones
+- name: Attach Split Volume
   local_action:
     module: aws_cli
     commandline: >
       ec2 attach-volume
         --volume-id {{item.VolumeId}}
         --instance-id {{item.InstanceId}}
-        --device {{data_volume.device}}
+        --device {{split_volume.device}}
         --profile {{profile}}
-  with_items: volumes_data
-  register: attach_volume_data
-- debug: var=attach_volume_data
+  with_items: volumes_split
+  register: attach_volume_split
+- debug: var=attach_volume_split
   tags:
     - debug
 
-- name: Attach Log Volumes
+- name: Attach Log Volume
   local_action:
     module: aws_cli
     commandline: >

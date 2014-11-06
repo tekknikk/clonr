@@ -4,7 +4,7 @@
   sudo: yes
 
 - name: Install the server Monitor
-  shell: yum install yum -y install newrelic-sysmond
+  shell: yum -y install newrelic-sysmond
   sudo: yes
 
 - name: Configure Server Monitor daemon with license

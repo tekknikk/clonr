@@ -1,4 +1,12 @@
 ---
+- name: Set machine time to Sydney
+  shell: "mv /etc/localtime /etc/localtime.old && ln -s /usr/share/zoneinfo/Australia/Sydney /etc/localtime"
+  sudo: yes
+
+- name: Install Git
+  shell: yum -y install git
+  sudo: yes
+
 - debug: var=id
   tags:
     - debug

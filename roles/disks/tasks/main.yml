@@ -1,0 +1,66 @@
+---
+- name: Load dm-mod module
+  shell: modprobe dm-mod
+  sudo: yes
+
+- name: Configure the RAID using ephemeral drives
+  shell: mdadm --create /dev/md0 --level=0 --chunk=256 --raid-devices=2 /dev/xvdb /dev/xvdc
+  sudo: yes
+
+- name: Increase block size for better performance
+  shell: blockdev --setra 65536 /dev/md0
+  sudo: yes
+
+- name: Create physical volume from the RAID 0 array
+  shell: pvcreate /dev/md0
+  sudo: yes
+
+- name: Create volume group
+  shell: vgcreate vg0 /dev/md0
+  sudo: yes
+
+- name: Create the Data volume
+  shell: lvcreate --name data --size 1400G vg0
+  sudo: yes
+
+- name: Make a file system on the Data volume
+  shell: mkfs -t ext4 /dev/vg0/data
+  sudo: yes
+
+- name: Mount the Data volume
+  shell: mount -t ext4 /dev/vg0/data /var/lib/pgsql/9.1/data/
+  sudo: yes
+
+# then keep it spanning reboots
+
+# Edit /etc/rc.local:
+# /sbin/modprobe dm-mod
+# /sbin/lvscan
+# /sbin/lvchange -ay /dev/vg0/data1
+# /bin/mount -t xfs -o noatime /dev/vg0/data1  /data1
+
+# Edit /etc/mdadm.conf:
+# DEVICE /dev/xvdb /dev/xvdc /dev/xvdd /dev/xvde /dev/xvdf /dev/xvdg /dev/xvdh /dev/xvdi
+# ARRAY /dev/md0 level=raid0 num-devices=8 UUID=ef906458:9929fc49:50a8f690:73239b9f
+
+- name: Mount Split Volume
+  mount:
+    name: /var/lib/pgsql/9.1/split
+    src: /dev/xvds
+    fstype: ext4
+    state: mounted
+    opts: nobarrier
+  sudo: yes
+
+- name: Mount Log Volume
+  mount:
+    name: /var/lib/pgsql/9.1/log
+    src: /dev/xvdl
+    fstype: ext4
+    state: mounted
+    opts: nobarrier
+  sudo: yes
+
+- name: Make sure everything is postgres
+  shell: chown -R postgres:postgres /var/lib/pgsql/9.1/*
+  sudo: yes

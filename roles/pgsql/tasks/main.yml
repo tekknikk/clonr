@@ -1,3 +1,9 @@
+---
+# TODO make this step optional
+- name: Initilise DB
+  shell: service postgresql-9.1 initdb
+  sudo: yes
+
 - name: Copy Postgres Conf with Memory Template
   template:
     src: postgresql.conf.json.j2
@@ -5,7 +11,6 @@
     owner: postgres
     group: postgres
   sudo: yes
-
 
 - name: Start Postgres
   service:

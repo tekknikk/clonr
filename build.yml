@@ -18,6 +18,6 @@
     - ./group_vars/build
   roles:
     - {role: newrelic, when: newrelic_key is defined}
+    - disks
     - dns
-    - clones
     - pgsql
