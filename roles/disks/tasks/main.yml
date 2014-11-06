@@ -1,10 +1,18 @@
 ---
+- name: Make sure /dev/xvdb is not mounted
+  mount:
+    name: /mnt
+    src: /dev/xvdb
+    fstype: ext2
+    state: unmounted
+  sudo: yes
+
 - name: Load dm-mod module
   shell: modprobe dm-mod
   sudo: yes
 
 - name: Configure the RAID using ephemeral drives
-  shell: mdadm --create /dev/md0 --level=0 --chunk=256 --raid-devices=2 /dev/xvdb /dev/xvdc
+  shell: mdadm --create --run /dev/md0 --level=0 --chunk=256 --raid-devices=2 /dev/xvdb /dev/xvdc
   sudo: yes
 
 - name: Increase block size for better performance
@@ -20,7 +28,7 @@
   sudo: yes
 
 - name: Create the Data volume
-  shell: lvcreate --name data --size 1400G vg0
+  shell: lvcreate --name data --size 600G vg0
   sudo: yes
 
 - name: Make a file system on the Data volume
